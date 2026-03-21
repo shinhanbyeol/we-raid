@@ -1,0 +1,11 @@
+{
+  "name": "we-raid",
+  "private": true,
+  "workspaces": ["we-raid-web", "we-raid-api"],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=we-raid-web",
+    "dev:api": "npm run start:dev --workspace=we-raid-api",
+    "db:generate": "npm run prisma:generate --workspace=we-raid-api",
+    "db:migrate": "npm run prisma:migrate --workspace=we-raid-api"
+  }
+}

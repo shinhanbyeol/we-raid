@@ -1,0 +1,304 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  ACTIVE
+  BANNED
+  DELETED
+}
+
+enum CharacterRole {
+  TANK
+  HEAL
+  DPS
+  SUPPORT
+  ETC
+}
+
+enum Region {
+  KR
+  NA
+  EU
+  ETC
+}
+
+enum GroupMemberRole {
+  OWNER
+  SUB_LEADER
+  MEMBER
+}
+
+enum GroupMemberStatus {
+  ACTIVE
+  BANNED
+}
+
+enum ScheduleStatus {
+  DRAFT
+  OPEN
+  FULL
+  CLOSED
+  CANCELLED
+}
+
+enum ParticipantStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  WAITLIST
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+enum NotificationType {
+  RAID_INVITE
+  INVITE_ACCEPTED
+  INVITE_DECLINED
+  SCHEDULE_REMINDER
+  SCHEDULE_CHANGED
+  SCHEDULE_CANCELLED
+  WAITLIST_PROMOTED
+  GROUP_INVITE
+  PT_MATCH
+}
+
+model User {
+  id           String     @id @default(cuid())
+  kakaoId      String     @unique
+  nickname     String     @unique
+  profileImage String?
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  characters     Character[]
+  playableTimes  PlayableTime[]
+  ownedGroups    Group[]         @relation("GroupOwner")
+  groupMembers   GroupMember[]
+  ledSchedules   Schedule[]      @relation("ScheduleLeader")
+  participants   Participant[]   @relation("ParticipantUser")
+  invitedBy      Participant[]   @relation("InvitedByUser")
+  notifications  Notification[]
+  sentFriendships     Friendship[] @relation("FriendRequester")
+  receivedFriendships Friendship[] @relation("FriendAddressee")
+}
+
+model Game {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  thumbnailUrl String?
+  isActive     Boolean  @default(true)
+  config       Json     @default("{}")
+  createdAt    DateTime @default(now())
+
+  characters  Character[]
+  eventTypes  EventType[]
+  servers     GameServer[]
+  groups      Group[]
+  schedules   Schedule[]
+}
+
+model GameServer {
+  id           String  @id @default(cuid())
+  gameId       String
+  name         String
+  region       Region  @default(KR)
+  isActive     Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  game       Game        @relation(fields: [gameId], references: [id])
+  characters Character[]
+
+  @@index([gameId])
+}
+
+model Character {
+  id           String        @id @default(cuid())
+  userId       String
+  gameId       String
+  serverId     String?
+  serverName   String
+  nickname     String
+  avatarUrl    String?
+  role         CharacterRole @default(DPS)
+  specText     String?
+  specImageUrl String?
+  isVerified   Boolean       @default(false)
+  specIsPublic Boolean       @default(true)
+  isDeleted    Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id])
+  game          Game          @relation(fields: [gameId], references: [id])
+  server        GameServer?   @relation(fields: [serverId], references: [id])
+  playableTimes PlayableTime[]
+  participants  Participant[]
+
+  @@index([userId, gameId])
+}
+
+model PlayableTime {
+  id          String   @id @default(cuid())
+  userId      String
+  characterId String?
+  dayOfWeek   Int
+  startTime   String
+  endTime     String
+  timezone    String   @default("Asia/Seoul")
+  isRecurring Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id])
+  character Character? @relation(fields: [characterId], references: [id])
+
+  @@index([userId, dayOfWeek])
+}
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  gameId      String
+  ownerId     String
+  description String?
+  isPublic    Boolean  @default(false)
+  inviteCode  String   @unique @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  game      Game          @relation(fields: [gameId], references: [id])
+  owner     User          @relation("GroupOwner", fields: [ownerId], references: [id])
+  members   GroupMember[]
+  schedules Schedule[]
+}
+
+model GroupMember {
+  id       String            @id @default(cuid())
+  groupId  String
+  userId   String
+  role     GroupMemberRole   @default(MEMBER)
+  status   GroupMemberStatus @default(ACTIVE)
+  joinedAt DateTime          @default(now())
+
+  group Group @relation(fields: [groupId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+}
+
+model EventType {
+  id          String   @id @default(cuid())
+  gameId      String?
+  name        String
+  description String?
+  isDefault   Boolean  @default(false)
+
+  game      Game?      @relation(fields: [gameId], references: [id])
+  schedules Schedule[]
+}
+
+model Schedule {
+  id              String         @id @default(cuid())
+  title           String
+  leaderId        String
+  leaderTitle     String         @default("공대장")
+  gameId          String
+  groupId         String?
+  eventTypeId     String?
+  startAt         DateTime
+  endAt           DateTime
+  maxParticipants Int
+  status          ScheduleStatus @default(OPEN)
+  recurringRule   Json?
+  description     String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  leader      User          @relation("ScheduleLeader", fields: [leaderId], references: [id])
+  game        Game          @relation(fields: [gameId], references: [id])
+  group       Group?        @relation(fields: [groupId], references: [id])
+  eventType   EventType?    @relation(fields: [eventTypeId], references: [id])
+  slots       ScheduleSlot[]
+  participants Participant[]
+
+  @@index([startAt, groupId])
+  @@index([leaderId])
+}
+
+model ScheduleSlot {
+  id          String        @id @default(cuid())
+  scheduleId  String
+  role        CharacterRole
+  count       Int
+  filledCount Int           @default(0)
+
+  schedule     Schedule      @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  participants Participant[]
+
+  @@index([scheduleId])
+}
+
+model Participant {
+  id          String            @id @default(cuid())
+  scheduleId  String
+  userId      String
+  characterId String?
+  slotId      String?
+  status      ParticipantStatus @default(PENDING)
+  respondedAt DateTime?
+  invitedById String?
+  createdAt   DateTime          @default(now())
+
+  schedule  Schedule      @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  user      User          @relation("ParticipantUser", fields: [userId], references: [id])
+  character Character?    @relation(fields: [characterId], references: [id])
+  slot      ScheduleSlot? @relation(fields: [slotId], references: [id])
+  invitedBy User?         @relation("InvitedByUser", fields: [invitedById], references: [id])
+
+  @@unique([scheduleId, userId])
+  @@index([scheduleId, userId])
+  @@index([userId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  isRead    Boolean          @default(false)
+  payload   Json             @default("{}")
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+}
+
+model Friendship {
+  id          String           @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+
+  requester User @relation("FriendRequester", fields: [requesterId], references: [id])
+  addressee User @relation("FriendAddressee", fields: [addresseeId], references: [id])
+
+  @@unique([requesterId, addresseeId])
+  @@index([requesterId])
+  @@index([addresseeId])
+}
