@@ -12,8 +12,8 @@
 - [x] NestJS 프로젝트 생성 (`we-raid-api`)
 - [x] Prisma 초기화 및 schema.prisma 작성
 - [x] `prisma generate` 완료
-- [ ] `prisma migrate dev --name init` 실행
-- [ ] shadcn/ui 초기화 및 기본 컴포넌트 추가
+- [x] `prisma migrate dev --name init` 실행
+- [x] shadcn/ui 초기화 및 기본 컴포넌트 추가
 
 ---
 
@@ -25,50 +25,59 @@
 - [x] JwtAuthGuard
 - [x] RolesGuard
 - [x] `@CurrentUser()` 데코레이터
-- [ ] Redis 연결 설정 (ioredis 커스텀 프로바이더)
-- [ ] 전역 예외 필터 (에러 코드 형식: `WR-{DOMAIN}-{CODE}`)
-- [ ] 전역 응답 인터셉터 (`{ data, message }` 형식)
-- [ ] Rate Limiting 설정 (전체 100req/min, 로그인 10req/min)
+- [x] Redis 연결 설정 → 인메모리 CacheService로 대체 (프로토타입)
+- [x] 전역 예외 필터 (에러 코드 형식: `WR-{DOMAIN}-{CODE}`)
+- [x] 전역 응답 인터셉터 (`{ data, message }` 형식)
+- [x] Rate Limiting 설정 (전체 100req/min, 로그인 10req/min)
 
 ### 인증 (Auth)
 
-- [ ] 카카오 OAuth 전략 (`passport-kakao`)
-- [ ] JWT Access Token 전략 (`passport-jwt`)
-- [ ] `GET /auth/kakao` — OAuth 리다이렉트 URL 반환
-- [ ] `GET /auth/kakao/callback` — 카카오 콜백, 신규/기존 분기, JWT 발급
-- [ ] `POST /auth/refresh` — Refresh Token 검증 및 Access Token 재발급 (Token Rotation)
-- [ ] `POST /auth/logout` — Redis Refresh Token 삭제
-- [ ] Refresh Token Redis 저장/조회/삭제 (`refresh:{userId}` 키)
+> NextAuth(Auth.js v5)를 프론트엔드에서 사용하는 방향으로 전환. passport-kakao 불필요.
+
+- [x] ~~카카오 OAuth 전략 (`passport-kakao`)~~ → NextAuth Kakao provider로 대체
+- [x] JWT Access Token 전략 (`passport-jwt`) — JwtStrategy 구현
+- [x] ~~`GET /auth/kakao`~~ → NextAuth가 처리
+- [x] ~~`GET /auth/kakao/callback`~~ → NextAuth jwt callback + `POST /auth/sync`으로 대체
+- [x] `POST /auth/sync` — NextAuth 콜백 후 사용자 동기화 및 백엔드 토큰 발급
+- [x] ~~`POST /auth/refresh`~~ → NextAuth 세션이 관리 (프로토타입: 7일 만료 토큰)
+- [x] ~~`POST /auth/logout`~~ → NextAuth signOut으로 처리
+- [x] ~~Refresh Token Redis 저장~~ → 프로토타입 미구현
+- [x] NextAuth 설정 (`auth.ts`, `proxy.ts`, route handler, SessionProvider)
 
 ### 사용자 (Users)
 
-- [ ] `GET /users/me` — 내 프로필 조회
-- [ ] `PATCH /users/me` — 닉네임 수정
-- [ ] `GET /users/:userId/characters` — 타 유저 캐릭터 조회 (스펙 공개 설정 적용)
-- [ ] `GET /users/:userId/playable-times` — 타 유저 PT 조회 (친구/그룹원 권한 검증)
+- [x] `GET /users/me` — 내 프로필 조회
+- [x] `PATCH /users/me` — 닉네임 수정
+- [x] `GET /users/:userId/characters` — 타 유저 캐릭터 조회 (specIsPublic 적용, mainChar 포함)
+- [x] `GET /users/:userId/playable-times` — 타 유저 PT 조회 (같은 그룹원 권한 검증)
 
 ### 게임 (Games)
 
-- [ ] `GET /games` — 게임 목록 조회
-- [ ] `GET /games/:gameId/servers` — 게임별 서버 목록 조회
-- [ ] `GET /games/:gameId/event-types` — 게임별 이벤트 유형 조회
+- [x] `GET /games` — 게임 목록 조회
+- [x] `GET /games/:gameId/servers` — 게임별 서버 목록 조회
+- [x] `GET /games/:gameId/event-types` — 게임별 이벤트 유형 조회
 
 ### 캐릭터 (Characters)
 
-- [ ] `GET /characters` — 내 캐릭터 목록 (gameId 필터)
-- [ ] `POST /characters` — 캐릭터 생성 (serverName, role 포함)
-- [ ] `PUT /characters/:id` — 캐릭터 수정
-- [ ] `DELETE /characters/:id` — 캐릭터 소프트 삭제
-- [ ] `POST /characters/:id/avatar` — 아바타 이미지 업로드 (S3, MIME 검증)
-- [ ] `POST /characters/:id/spec-image` — 스펙 인증 이미지 업로드 (S3)
+> 본캐/부캐 구분 기능 추가 (2026-03-27). `isMain`, `mainCharId` 필드 스키마 반영 완료.
+
+- [x] `GET /characters` — 내 캐릭터 목록 (gameId·isMain 필터, mainChar·altChars 포함)
+- [x] `POST /characters` — 캐릭터 생성 (`isMain`, `mainCharId` 검증 포함)
+- [x] `PUT /characters/:id` — 캐릭터 수정 (본캐→부캐 변경 시 mainCharId null 자동처리)
+- [x] `DELETE /characters/:id` — 캐릭터 소프트 삭제 (연결 부캐 mainCharId null 처리)
+- [x] `POST /characters/:id/avatar` — 아바타 업로드 (multer 로컬, 최대 5MB) → S3 교체 예정
+- [x] `POST /characters/:id/spec-image` — 스펙 이미지 업로드 (multer 로컬) → S3 교체 예정
+- [x] 캐릭터 목록 응답에 `mainChar`, `altChars` 포함
+- [ ] [FE] 캐릭터 등록 폼 — 본캐/부캐 선택 UI, 부캐 선택 시 같은 게임 본캐 드롭다운
+- [ ] [FE] 캐릭터 카드 — 부캐에 본캐 정보 표시 (호버 툴팁 또는 카드 하단 "본캐: {닉네임}")
 
 ### 플레이 가능 시간 (PlayableTime)
 
-- [ ] `GET /playable-times` — 내 PT 목록
-- [ ] `POST /playable-times` — PT 생성 (복수 슬롯 일괄 등록)
-- [ ] `PUT /playable-times/:id` — PT 수정
-- [ ] `DELETE /playable-times/:id` — PT 삭제
-- [ ] Redis 캐시 적용 (TTL 5분, PT 변경 시 무효화)
+- [x] `GET /playable-times` — 내 PT 목록 (인메모리 캐시 5분)
+- [x] `POST /playable-times` — PT 일괄 등록 (최대 50개, 트랜잭션)
+- [x] `PUT /playable-times/:id` — PT 수정
+- [x] `DELETE /playable-times/:id` — PT 삭제
+- [x] 인메모리 캐시 적용 (TTL 5분, 쓰기·삭제 시 무효화)
 
 ### 그룹 (Groups)
 
@@ -105,16 +114,16 @@
 
 ### 관리자 (Admin)
 
-- [ ] ADMIN 역할 가드 미들웨어
-- [ ] `POST /admin/games` — 게임 등록
-- [ ] `PUT /admin/games/:id` — 게임 수정
-- [ ] `DELETE /admin/games/:id` — 게임 삭제
-- [ ] `POST /admin/games/:gameId/servers` — 서버 등록
-- [ ] `PUT /admin/games/:gameId/servers/:id` — 서버 수정
-- [ ] `DELETE /admin/games/:gameId/servers/:id` — 서버 삭제
-- [ ] `POST /admin/games/:gameId/event-types` — 이벤트 유형 등록
-- [ ] `GET /admin/users` — 유저 목록 조회
-- [ ] `PATCH /admin/users/:id/status` — 유저 상태 변경 (BANNED/ACTIVE)
+- [x] ADMIN 역할 가드 (`AdminGuard`, `User.isAdmin` 필드)
+- [x] `POST /admin/games` — 게임 등록
+- [x] `PUT /admin/games/:id` — 게임 수정
+- [x] `DELETE /admin/games/:id` — 게임 비활성화 (isActive: false)
+- [x] `POST /admin/games/:gameId/servers` — 서버 등록
+- [x] `PUT /admin/games/:gameId/servers/:id` — 서버 수정
+- [x] `DELETE /admin/games/:gameId/servers/:id` — 서버 삭제
+- [x] `POST /admin/games/:gameId/event-types` — 이벤트 유형 등록
+- [x] `GET /admin/users` — 유저 목록 조회
+- [x] `PATCH /admin/users/:id/status` — 유저 상태 변경 (BANNED/ACTIVE)
 
 ### Should Have
 

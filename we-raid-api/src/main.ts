@@ -1,11 +1,16 @@
 import { NestFactory } from '@nestjs/core'
+import { NestExpressApplication } from '@nestjs/platform-express'
 import { AppModule } from './app.module'
 import { ValidationPipe } from '@nestjs/common'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import cookieParser from 'cookie-parser'
+import { join } from 'path'
+import { HttpExceptionFilter } from './common/filters/http-exception.filter'
+import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create<NestExpressApplication>(AppModule)
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' })
 
   app.use(cookieParser())
 
@@ -23,6 +28,9 @@ async function bootstrap() {
       transform: true,
     })
   )
+
+  app.useGlobalFilters(new HttpExceptionFilter())
+  app.useGlobalInterceptors(new ResponseInterceptor())
 
   const config = new DocumentBuilder()
     .setTitle('We-Raid API')

@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 enum UserStatus {
@@ -77,6 +77,7 @@ model User {
   nickname     String     @unique
   profileImage String?
   status       UserStatus @default(ACTIVE)
+  isAdmin      Boolean    @default(false)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -98,7 +99,7 @@ model Game {
   slug         String   @unique
   thumbnailUrl String?
   isActive     Boolean  @default(true)
-  config       Json     @default("{}")
+  config       String   @default("{}")
   createdAt    DateTime @default(now())
 
   characters  Character[]
@@ -131,6 +132,8 @@ model Character {
   nickname     String
   avatarUrl    String?
   role         CharacterRole @default(DPS)
+  isMain       Boolean       @default(true)   // true: 본캐, false: 부캐
+  mainCharId   String?                         // 부캐인 경우 본캐 ID
   specText     String?
   specImageUrl String?
   isVerified   Boolean       @default(false)
@@ -142,10 +145,13 @@ model Character {
   user          User          @relation(fields: [userId], references: [id])
   game          Game          @relation(fields: [gameId], references: [id])
   server        GameServer?   @relation(fields: [serverId], references: [id])
+  mainChar      Character?    @relation("AltToMain", fields: [mainCharId], references: [id])
+  altChars      Character[]   @relation("AltToMain")
   playableTimes PlayableTime[]
   participants  Participant[]
 
   @@index([userId, gameId])
+  @@index([mainCharId])
 }
 
 model PlayableTime {
@@ -222,7 +228,7 @@ model Schedule {
   endAt           DateTime
   maxParticipants Int
   status          ScheduleStatus @default(OPEN)
-  recurringRule   Json?
+  recurringRule   String?
   description     String?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -280,7 +286,7 @@ model Notification {
   title     String
   body      String
   isRead    Boolean          @default(false)
-  payload   Json             @default("{}")
+  payload   String           @default("{}")
   createdAt DateTime         @default(now())
 
   user User @relation(fields: [userId], references: [id])

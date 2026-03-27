@@ -11,12 +11,14 @@ import { PlayableTimesModule } from './playable-times/playable-times.module'
 import { NotificationsModule } from './notifications/notifications.module'
 import { AdminModule } from './admin/admin.module'
 import { PrismaModule } from './common/prisma/prisma.module'
+import { CacheModule } from './common/cache/cache.module'
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     PrismaModule,
+    CacheModule,
     AuthModule,
     UsersModule,
     CharactersModule,

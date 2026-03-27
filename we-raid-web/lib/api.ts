@@ -1,20 +1,23 @@
 import axios from 'axios'
+import { getSession } from 'next-auth/react'
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true,
+})
+
+api.interceptors.request.use(async (config) => {
+  const session = await getSession()
+  if (session?.backendToken) {
+    config.headers.Authorization = `Bearer ${session.backendToken}`
+  }
+  return config
 })
 
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
+  (error) => {
     if (error.response?.status === 401) {
-      try {
-        await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {}, { withCredentials: true })
-        return api.request(error.config)
-      } catch {
-        window.location.href = '/login'
-      }
+      window.location.href = '/login'
     }
     return Promise.reject(error)
   }

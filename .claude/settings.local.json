@@ -3,7 +3,18 @@
     "allow": [
       "Bash(npx create-next-app@latest we-raid-web --typescript --tailwind --eslint --app --src-dir=false --import-alias=\"@/*\" --no-git --yes)",
       "Bash(npm install:*)",
-      "Bash(npx @nestjs/cli new we-raid-api --package-manager npm --skip-git --language TypeScript --strict)"
+      "Bash(npx @nestjs/cli new we-raid-api --package-manager npm --skip-git --language TypeScript --strict)",
+      "Bash(pnpm --version)",
+      "Bash(pnpm dlx:*)",
+      "Bash(ls /Users/hanbyeol/git/we-raid/we-raid-api/*.env*)",
+      "Bash(./node_modules/.bin/prisma migrate:*)",
+      "Bash(/Users/hanbyeol/git/we-raid/node_modules/.bin/prisma migrate:*)",
+      "Bash(rm -rf /Users/hanbyeol/git/we-raid/we-raid-api/prisma/migrations /Users/hanbyeol/git/we-raid/we-raid-api/prisma/dev.db)",
+      "Bash(DATABASE_URL=\"file:./dev.db\" /Users/hanbyeol/git/we-raid/node_modules/.bin/prisma migrate dev --name init)",
+      "Bash(npm run:*)",
+      "Bash(DATABASE_URL=\"file:./dev.db\" /Users/hanbyeol/git/we-raid/node_modules/.bin/prisma migrate dev --name add_character_main_alt 2>&1)",
+      "Bash(DATABASE_URL=\"file:./dev.db\" /Users/hanbyeol/git/we-raid/node_modules/.bin/prisma generate)",
+      "Bash(DATABASE_URL=\"file:./dev.db\" /Users/hanbyeol/git/we-raid/node_modules/.bin/prisma migrate dev --name add_user_is_admin)"
     ]
   }
 }

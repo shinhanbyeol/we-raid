@@ -89,7 +89,7 @@
 |------|------|------|
 | **User** | id, kakaoId, nickname, profileImage, createdAt, status(ACTIVE/BANNED/DELETED) | 1명의 User는 N개의 Character, N개의 PlayableTime, N개의 Group 보유 |
 | **Game** | id, name, slug, thumbnailUrl, isActive, config(JSON) | 1개의 Game에 N개의 Character, N개의 EventType, N개의 GameServer 연결 |
-| **Character** | id, userId, gameId, **serverName**, nickname, avatarUrl, role(TANK/HEAL/DPS/SUPPORT/ETC), specText, specImageUrl, isVerified | User와 Game의 교차 엔티티. serverName은 GameServer에서 선택. 일정 매칭 시 서버 필터링에 사용 |
+| **Character** | id, userId, gameId, **serverName**, nickname, avatarUrl, role(TANK/HEAL/DPS/SUPPORT/ETC), **isMain**, **mainCharId**, specText, specImageUrl, isVerified | User와 Game의 교차 엔티티. isMain=true이면 본캐, false이면 부캐. 부캐는 mainCharId로 본캐 Character를 참조(nullable). 일정 매칭 시 서버 필터링에 사용 |
 | **GameServer** | id, gameId, name, region(KR/NA/EU/ETC), isActive, displayOrder | 게임별 서버 목록. 관리자가 등록/관리. isActive=false이면 선택 불가(서버 종료 대응) |
 | **PlayableTime** | id, userId, characterId(nullable), dayOfWeek(0-6), startTime, endTime, timezone, isRecurring | characterId null이면 계정 전체 PT, 있으면 특정 캐릭터 PT |
 | **Group** | id, name, gameId, ownerId, description, isPublic, inviteCode, createdAt | Game에 종속. 1개의 Group은 1개의 Game만 선택. inviteCode로 링크 초대 지원 |
@@ -157,6 +157,8 @@ WHERE p.user_id = :userId
 | 게임 선택 | 관리자가 등록한 게임 목록을 그리드/리스트로 표시. 검색 기능 포함 |
 | 닉네임 | 게임 내 캐릭터 닉네임. 최대 30자 |
 | **서버(Server)** | **캐릭터가 속한 게임 서버 선택 또는 직접 입력. 서버 목록은 GameServer 테이블에서 게임별 로드. 예) 로스트아크: 아브렐슈드·카제로스 / WoW: 아즈샤라·버나딘. 같은 게임이라도 서버가 다르면 함께 레이드 불가이므로 일정 매칭 시 서버 일치 여부 필터링에 사용** |
+| **본캐 / 부캐 구분** | **캐릭터 등록 시 본캐(isMain: true) 또는 부캐(isMain: false)로 구분. 부캐 등록 시 동일 게임 내 본캐를 선택하여 연결(mainCharId). 본캐 미선택도 허용.** |
+| **부캐 → 본캐 표시** | **타 유저 또는 내 캐릭터 목록에서 부캐 프로필 표시 시, 연결된 본캐 정보를 마우스 호버 시 툴팁으로 표시하거나 프로필 카드 하단에 작게 "본캐: {닉네임}" 형태로 상시 노출. 본캐가 미연결인 경우 미표시.** |
 | 역할(Role) | TANK / HEAL / DPS / SUPPORT / ETC 중 선택. 일정 포지션 모집과 연결됨 |
 | 아바타 등록 | 게임 스크린샷 업로드 → 클라이언트에서 react-image-crop으로 320x320 크롭 → WebP 변환 후 S3 업로드. 원본 최대 10MB |
 | 스펙 정보 | ① `specText`: 자유 텍스트 최대 500자 / ② `specImageUrl`: 스펙 인증 스크린샷 최대 5MB |
