@@ -6,6 +6,8 @@ interface BackendUser {
   nickname: string
   profileImage: string | null
   status: 'ACTIVE' | 'BANNED' | 'DELETED'
+  isAdmin: boolean
+  createdAt: string
 }
 
 declare module 'next-auth' {

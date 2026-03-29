@@ -81,35 +81,35 @@
 
 ### 그룹 (Groups)
 
-- [ ] `POST /groups` — 그룹 생성 (생성자 OWNER 자동 부여)
-- [ ] `GET /groups/:id` — 그룹 상세 조회
-- [ ] `GET /groups/:id/members` — 멤버 목록 조회
-- [ ] `POST /groups/:id/invite` — 플랫폼 내 검색 초대
-- [ ] `POST /groups/join/:inviteCode` — 초대 코드로 가입
-- [ ] `PATCH /groups/:id/members/:userId` — 멤버 역할 변경 / 가입 승인
-- [ ] `DELETE /groups/:id/members/:userId` — 멤버 강퇴
+- [x] `POST /groups` — 그룹 생성 (생성자 OWNER 자동 부여)
+- [x] `GET /groups/:id` — 그룹 상세 조회
+- [x] `GET /groups/:id/members` — 멤버 목록 조회
+- [x] `POST /groups/:id/invite` — 플랫폼 내 검색 초대
+- [x] `POST /groups/join/:inviteCode` — 초대 코드로 가입
+- [x] `PATCH /groups/:id/members/:userId` — 멤버 역할 변경 / 가입 승인
+- [x] `DELETE /groups/:id/members/:userId` — 멤버 강퇴
 
 ### 레이드 일정 (Schedules)
 
-- [ ] `GET /schedules` — 내 일정 목록 (from, to, status 필터)
-- [ ] `POST /schedules` — 일정 생성
-- [ ] `GET /schedules/:id` — 일정 상세 (참여자 목록 포함)
-- [ ] `PUT /schedules/:id` — 일정 수정 (리더 권한, 시간 변경 시 알림 발송)
-- [ ] `DELETE /schedules/:id` — 일정 취소 (리더 권한, 전체 알림 발송)
-- [ ] `POST /schedules/:id/participants` — 참여자 초대 (PENDING 생성, 알림 발송)
-- [ ] `PATCH /schedules/:id/participants/me` — 참여 수락/거절
-- [ ] 일정 충돌 감지 로직 (동일 userId, 시간 겹침 쿼리)
-- [ ] 정원 초과 시 WAITLIST 자동 전환 + `Schedule.status = FULL`
-- [ ] 대기열 → 참여 전환 알림 (자리 생기면 WAITLIST 순서대로)
+- [x] `GET /schedules` — 내 일정 목록 (from, to, status 필터)
+- [x] `POST /schedules` — 일정 생성
+- [x] `GET /schedules/:id` — 일정 상세 (참여자 목록 포함)
+- [x] `PUT /schedules/:id` — 일정 수정 (리더 권한, 시간 변경 시 알림 발송)
+- [x] `DELETE /schedules/:id` — 일정 취소 (리더 권한, 전체 알림 발송)
+- [x] `POST /schedules/:id/participants` — 참여자 초대 (PENDING 생성, 알림 발송)
+- [x] `PATCH /schedules/:id/participants/me` — 참여 수락/거절
+- [x] 일정 충돌 감지 로직 (동일 userId, 시간 겹침 쿼리)
+- [x] 정원 초과 시 WAITLIST 자동 전환 + `Schedule.status = FULL`
+- [x] 대기열 → 참여 전환 알림 (자리 생기면 WAITLIST 순서대로)
 
 ### 알림 (Notifications)
 
-- [ ] `GET /notifications` — 인앱 알림 목록
-- [ ] `PATCH /notifications/:id/read` — 알림 읽음 처리
-- [ ] `GET /notifications/stream` — SSE 연결 엔드포인트
-- [ ] SSE 실시간 알림 전송 구현
+- [x] `GET /notifications` — 인앱 알림 목록
+- [x] `PATCH /notifications/:id/read` — 알림 읽음 처리
+- [x] `GET /notifications/stream` — SSE 연결 엔드포인트
+- [x] SSE 실시간 알림 전송 구현
 - [ ] 카카오 알림톡 발송 모듈 (레이드 초대, 리마인더, 일정 변경/취소, 대기열 전환)
-- [ ] 리마인더 Cron Job (D-1, 1시간 전)
+- [x] 리마인더 Cron Job (D-1, 1시간 전)
 - [ ] 알림 발송 실패 재시도 (3회, exponential backoff)
 
 ### 관리자 (Admin)
@@ -127,10 +127,10 @@
 
 ### Should Have
 
-- [ ] `GET /schedules/public` — 공개 모집 목록 (gameId, role 필터)
-- [ ] `POST /schedules/:id/slots` — 포지션별 모집 정원(ScheduleSlot) 등록
-- [ ] 반복 일정 (recurringRule RRULE 저장 및 rrule.js 파싱)
-- [ ] 친구 추가/수락/차단 (`Friendship` CRUD)
+- [x] `GET /schedules/public` — 공개 모집 목록 (gameId, role 필터)
+- [x] `POST /schedules/:id/slots` — 포지션별 모집 정원(ScheduleSlot) 등록
+- [x] 반복 일정 (recurringRule RRULE 저장 및 rrule.js 파싱)
+- [x] 친구 추가/수락/차단 (`Friendship` CRUD)
 - [ ] 레이드 클리어 기록 처리
 - [ ] Web Push 발송 (FCM 연동)
 
@@ -143,10 +143,10 @@
 - [x] axios 인스턴스 + 401 자동 토큰 갱신 인터셉터 (`lib/api.ts`)
 - [x] QueryClientProvider (`app/providers.tsx`)
 - [x] Zustand 인증 스토어 (`store/auth.store.ts`)
-- [ ] shadcn/ui 기본 컴포넌트 설치 (button, input, card, badge, avatar, dialog, sheet, tabs)
-- [ ] API 응답 타입 정의 (`lib/types/`)
-- [ ] 커스텀 훅 — `useAuth`, `useCurrentUser`
-- [ ] 인증 가드 레이아웃 (`app/(main)/layout.tsx`)
+- [x] shadcn/ui 기본 컴포넌트 설치 (button, input, card, badge, avatar, dialog, sheet, tabs)
+- [x] API 응답 타입 정의 (`lib/types/`)
+- [x] 커스텀 훅 — `useAuth`, `useCurrentUser`
+- [x] 인증 가드 레이아웃 (`app/(main)/layout.tsx`)
 
 ### 인증
 

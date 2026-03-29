@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { ThrottlerModule } from '@nestjs/throttler'
+import { ScheduleModule } from '@nestjs/schedule'
 import { AuthModule } from './auth/auth.module'
 import { UsersModule } from './users/users.module'
 import { CharactersModule } from './characters/characters.module'
@@ -9,6 +10,7 @@ import { GroupsModule } from './groups/groups.module'
 import { SchedulesModule } from './schedules/schedules.module'
 import { PlayableTimesModule } from './playable-times/playable-times.module'
 import { NotificationsModule } from './notifications/notifications.module'
+import { FriendshipsModule } from './friendships/friendships.module'
 import { AdminModule } from './admin/admin.module'
 import { PrismaModule } from './common/prisma/prisma.module'
 import { CacheModule } from './common/cache/cache.module'
@@ -17,6 +19,7 @@ import { CacheModule } from './common/cache/cache.module'
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+    ScheduleModule.forRoot(),
     PrismaModule,
     CacheModule,
     AuthModule,
@@ -27,6 +30,7 @@ import { CacheModule } from './common/cache/cache.module'
     SchedulesModule,
     PlayableTimesModule,
     NotificationsModule,
+    FriendshipsModule,
     AdminModule,
   ],
 })

@@ -1,12 +1,5 @@
 import { create } from 'zustand'
-
-interface User {
-  id: string
-  kakaoId: string
-  nickname: string
-  profileImage: string | null
-  status: 'ACTIVE' | 'BANNED' | 'DELETED'
-}
+import type { User } from '@/lib/types/api'
 
 interface AuthState {
   user: User | null
