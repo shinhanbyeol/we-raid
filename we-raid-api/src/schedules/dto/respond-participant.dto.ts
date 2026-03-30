@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger'
-import { IsEnum } from 'class-validator'
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum } from 'class-validator';
 
 export enum ParticipantResponseStatus {
   ACCEPTED = 'ACCEPTED',
@@ -7,7 +7,10 @@ export enum ParticipantResponseStatus {
 }
 
 export class RespondParticipantDto {
-  @ApiProperty({ enum: ParticipantResponseStatus, description: '수락(ACCEPTED) 또는 거절(DECLINED)' })
+  @ApiProperty({
+    enum: ParticipantResponseStatus,
+    description: '수락(ACCEPTED) 또는 거절(DECLINED)',
+  })
   @IsEnum(ParticipantResponseStatus)
-  status: ParticipantResponseStatus
+  status: ParticipantResponseStatus;
 }

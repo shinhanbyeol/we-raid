@@ -1,21 +1,318 @@
-export default function HomePage() {
+'use client'
+
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+ startOfDay, addDays, format, isToday, parseISO
+} from 'date-fns'
+import { ko } from 'date-fns/locale'
+import { api } from '@/lib/api'
+import { useAuth } from '@/hooks/use-auth'
+import type {
+  ApiResponse,
+  Schedule,
+  NotificationList,
+  Notification,
+  ScheduleStatus,
+} from '@/lib/types/api'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+
+const STATUS_MAP: Record<ScheduleStatus, { label: string; className: string }> = {
+  DRAFT: { label: '초안', className: 'bg-slate-100 text-slate-500' },
+  OPEN: { label: '모집 중', className: 'bg-green-100 text-green-700' },
+  FULL: { label: '정원 마감', className: 'bg-orange-100 text-orange-700' },
+  CLOSED: { label: '마감', className: 'bg-slate-100 text-slate-600' },
+  CANCELLED: { label: '취소됨', className: 'bg-red-100 text-red-500' },
+}
+
+const ScheduleItem = ({ schedule }: { schedule: Schedule }) => {
+  const status = STATUS_MAP[schedule.status]
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-slate-900">홈</h1>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-2 font-semibold text-slate-700">다가오는 레이드</h2>
-          <p className="text-slate-500">예정된 레이드 일정이 없습니다.</p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-2 font-semibold text-slate-700">내 그룹</h2>
-          <p className="text-slate-500">소속된 그룹이 없습니다.</p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-2 font-semibold text-slate-700">공개 모집</h2>
-          <p className="text-slate-500">공개 모집 중인 레이드가 없습니다.</p>
-        </div>
+    <div className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-slate-900">{schedule.title}</p>
+        <p className="mt-0.5 text-xs text-slate-500">
+          {format(parseISO(schedule.startAt), 'M월 d일 (E) HH:mm', { locale: ko })}
+          {' · '}
+          {schedule.leaderTitle}
+        </p>
       </div>
+      <span
+        className={`ml-3 shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}
+      >
+        {status.label}
+      </span>
     </div>
   )
 }
+
+const PendingInviteItem = ({
+  notification,
+  onRespond,
+  disabled,
+}: {
+  notification: Notification
+  onRespond: (scheduleId: string, status: 'ACCEPTED' | 'DECLINED', notifId: string) => void
+  disabled: boolean
+}) => {
+  const payload = (() => {
+    try {
+      return JSON.parse(notification.payload) as { scheduleId?: string }
+    } catch {
+      return {}
+    }
+  })()
+  const scheduleId = payload.scheduleId ?? ''
+
+  return (
+    <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-slate-900">{notification.title}</p>
+        <p className="mt-0.5 text-xs text-slate-500">{notification.body}</p>
+      </div>
+      {scheduleId && (
+        <div className="ml-3 flex shrink-0 gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={disabled}
+            onClick={() => onRespond(scheduleId, 'DECLINED', notification.id)}
+          >
+            거절
+          </Button>
+          <Button
+            size="sm"
+            disabled={disabled}
+            onClick={() => onRespond(scheduleId, 'ACCEPTED', notification.id)}
+          >
+            수락
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const HomePage = () => {
+  const { user, signOut } = useAuth()
+  const queryClient = useQueryClient()
+  const [inviteCode, setInviteCode] = useState('')
+  const [inviteMessage, setInviteMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null)
+
+  const now = new Date()
+  const from = startOfDay(now).toISOString()
+  const to = addDays(startOfDay(now), 7).toISOString()
+
+  const { data: schedules, isLoading: schedulesLoading } = useQuery({
+    queryKey: ['schedules', 'home', from],
+    queryFn: async () => {
+      const res = await api.get<ApiResponse<Schedule[]>>('/schedules', {
+        params: { from, to },
+      })
+      return res.data.data
+    },
+  })
+
+  const { data: notifData } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async () => {
+      const res = await api.get<ApiResponse<NotificationList>>('/notifications')
+      return res.data.data
+    },
+  })
+
+  const pendingInvites = notifData?.items.filter(
+    (n) => n.type === 'RAID_INVITE' && !n.isRead,
+  ) ?? []
+
+  const respondMutation = useMutation({
+    mutationFn: async ({
+      scheduleId,
+      status,
+      notifId,
+    }: {
+      scheduleId: string
+      status: 'ACCEPTED' | 'DECLINED'
+      notifId: string
+    }) => {
+      await api.patch(`/schedules/${scheduleId}/participants/me`, { status })
+      await api.patch(`/notifications/${notifId}/read`, {})
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['schedules', 'home'] })
+    },
+  })
+
+  const joinGroupMutation = useMutation({
+    mutationFn: async (code: string) => {
+      await api.post(`/groups/join/${code}`)
+    },
+    onSuccess: () => {
+      setInviteCode('')
+      setInviteMessage({ type: 'success', text: '그룹에 참여했습니다!' })
+    },
+    onError: () => {
+      setInviteMessage({ type: 'error', text: '유효하지 않은 초대 코드입니다.' })
+    },
+  })
+
+  const todaySchedules = schedules?.filter((s) => isToday(parseISO(s.startAt))) ?? []
+  const upcomingSchedules = schedules?.filter((s) => !isToday(parseISO(s.startAt))) ?? []
+
+  return (
+    <div className="container mx-auto max-w-3xl px-4 py-8">
+      {/* 헤더 */}
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">
+            안녕하세요,
+            {' '}
+            {user?.nickname ?? '...'}
+            님
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            {format(now, 'yyyy년 M월 d일 (E)', { locale: ko })}
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={signOut}>
+          로그아웃
+        </Button>
+      </div>
+
+      {/* 미응답 초대 */}
+      {pendingInvites.length > 0 && (
+        <section className="mb-6">
+          <div className="mb-2 flex items-center gap-2">
+            <h2 className="font-semibold text-slate-900">미응답 초대</h2>
+            <span className="inline-flex size-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+              {pendingInvites.length}
+            </span>
+          </div>
+          <div className="space-y-2">
+            {pendingInvites.map((n) => (
+              <PendingInviteItem
+                key={n.id}
+                notification={n}
+                onRespond={(scheduleId, status, notifId) => {
+                  respondMutation.mutate({ scheduleId, status, notifId })
+                }}
+                disabled={respondMutation.isPending}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 오늘 레이드 */}
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>
+            오늘 레이드
+            {todaySchedules.length > 0 && (
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                {todaySchedules.length}
+                개
+              </span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {schedulesLoading && <p className="text-sm text-muted-foreground">불러오는 중...</p>}
+          {!schedulesLoading && todaySchedules.length === 0 && (
+            <p className="text-sm text-muted-foreground">오늘 예정된 레이드가 없습니다.</p>
+          )}
+          {!schedulesLoading && todaySchedules.length > 0 && (
+            <div className="space-y-2">
+              {todaySchedules.map((s) => (
+                <ScheduleItem key={s.id} schedule={s} />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 이번 주 레이드 */}
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>
+            이번 주 레이드
+            {upcomingSchedules.length > 0 && (
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                {upcomingSchedules.length}
+                개
+              </span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {schedulesLoading && <p className="text-sm text-muted-foreground">불러오는 중...</p>}
+          {!schedulesLoading && upcomingSchedules.length === 0 && (
+            <p className="text-sm text-muted-foreground">이번 주 예정된 레이드가 없습니다.</p>
+          )}
+          {!schedulesLoading && upcomingSchedules.length > 0 && (
+            <div className="space-y-2">
+              {upcomingSchedules.map((s) => (
+                <ScheduleItem key={s.id} schedule={s} />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 그룹 빠른 접근 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>그룹</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            초대 코드로 그룹에 참여하거나 새 그룹을 만드세요.
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={inviteCode}
+              onChange={(e) => {
+                setInviteCode(e.target.value)
+                setInviteMessage(null)
+              }}
+              placeholder="초대 코드 입력"
+              className="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && inviteCode.trim()) {
+                  joinGroupMutation.mutate(inviteCode.trim())
+                }
+              }}
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={!inviteCode.trim() || joinGroupMutation.isPending}
+              onClick={() => joinGroupMutation.mutate(inviteCode.trim())}
+            >
+              가입
+            </Button>
+          </div>
+          {inviteMessage && (
+            <p
+              className={`text-xs ${
+                inviteMessage.type === 'error' ? 'text-red-500' : 'text-green-600'
+              }`}
+            >
+              {inviteMessage.text}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+export default HomePage

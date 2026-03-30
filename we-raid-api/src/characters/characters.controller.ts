@@ -1,31 +1,53 @@
 import {
-  Controller, Get, Post, Put, Delete,
-  Body, Param, Query, UseGuards,
-  UseInterceptors, UploadedFile,
-  ParseFilePipe, MaxFileSizeValidator, FileTypeValidator,
-  HttpCode, HttpStatus,
-} from '@nestjs/common'
-import { FileInterceptor } from '@nestjs/platform-express'
-import { diskStorage, type StorageEngine } from 'multer'
-import type { Request } from 'express'
-import { extname } from 'path'
-import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger'
-import { CharactersService } from './characters.service'
-import { CreateCharacterDto } from './dto/create-character.dto'
-import { UpdateCharacterDto } from './dto/update-character.dto'
-import { QueryCharacterDto } from './dto/query-character.dto'
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard'
-import { CurrentUser } from '../common/decorators/current-user.decorator'
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage, type StorageEngine } from 'multer';
+import type { Request } from 'express';
+import { extname } from 'path';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import { CharactersService } from './characters.service';
+import { CreateCharacterDto } from './dto/create-character.dto';
+import { UpdateCharacterDto } from './dto/update-character.dto';
+import { QueryCharacterDto } from './dto/query-character.dto';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
-interface AuthUser { id: string }
+interface AuthUser {
+  id: string;
+}
 
 const imageStorage: StorageEngine = diskStorage({
   destination: './uploads',
-  filename: (_req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e6)}`
-    cb(null, `${unique}${extname(file.originalname)}`)
+  filename: (
+    _req: Request,
+    file: Express.Multer.File,
+    cb: (error: Error | null, filename: string) => void,
+  ) => {
+    const unique = `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
+    cb(null, `${unique}${extname(file.originalname)}`);
   },
-})
+});
 
 @ApiTags('characters')
 @ApiBearerAuth()
@@ -36,27 +58,36 @@ export class CharactersController {
 
   @Get()
   @ApiOperation({ summary: '내 캐릭터 목록 (gameId·isMain 필터)' })
-  getMyCharacters(@CurrentUser() user: AuthUser, @Query() query: QueryCharacterDto) {
-    return this.charactersService.getMyCharacters(user.id, query)
+  getMyCharacters(
+    @CurrentUser() user: AuthUser,
+    @Query() query: QueryCharacterDto,
+  ) {
+    return this.charactersService.getMyCharacters(user.id, query);
   }
 
   @Post()
   @ApiOperation({ summary: '캐릭터 생성' })
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateCharacterDto) {
-    return this.charactersService.create(user.id, dto)
+    return this.charactersService.create(user.id, dto);
   }
 
   @Put(':id')
   @ApiOperation({ summary: '캐릭터 수정 (본캐/부캐 변경, 본캐 연결 포함)' })
-  update(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() dto: UpdateCharacterDto) {
-    return this.charactersService.update(user.id, id, dto)
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateCharacterDto,
+  ) {
+    return this.charactersService.update(user.id, id, dto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: '캐릭터 소프트 삭제 (연결 부캐 mainCharId null 처리)' })
+  @ApiOperation({
+    summary: '캐릭터 소프트 삭제 (연결 부캐 mainCharId null 처리)',
+  })
   remove(@CurrentUser() user: AuthUser, @Param('id') id: string) {
-    return this.charactersService.remove(user.id, id)
+    return this.charactersService.remove(user.id, id);
   }
 
   @Post(':id/avatar')
@@ -76,8 +107,8 @@ export class CharactersController {
     )
     file: Express.Multer.File,
   ) {
-    const avatarUrl = `/uploads/${file.filename}`
-    return this.charactersService.updateAvatar(user.id, id, avatarUrl)
+    const avatarUrl = `/uploads/${file.filename}`;
+    return this.charactersService.updateAvatar(user.id, id, avatarUrl);
   }
 
   @Post(':id/spec-image')
@@ -97,7 +128,7 @@ export class CharactersController {
     )
     file: Express.Multer.File,
   ) {
-    const specImageUrl = `/uploads/${file.filename}`
-    return this.charactersService.updateSpecImage(user.id, id, specImageUrl)
+    const specImageUrl = `/uploads/${file.filename}`;
+    return this.charactersService.updateSpecImage(user.id, id, specImageUrl);
   }
 }

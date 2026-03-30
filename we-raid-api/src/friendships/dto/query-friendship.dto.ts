@@ -1,5 +1,5 @@
-import { ApiPropertyOptional } from '@nestjs/swagger'
-import { IsEnum, IsOptional } from 'class-validator'
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEnum, IsOptional } from 'class-validator';
 
 export enum FriendshipStatusQuery {
   PENDING = 'PENDING',
@@ -14,5 +14,5 @@ export class QueryFriendshipDto {
   })
   @IsOptional()
   @IsEnum(FriendshipStatusQuery)
-  status?: FriendshipStatusQuery
+  status?: FriendshipStatusQuery;
 }

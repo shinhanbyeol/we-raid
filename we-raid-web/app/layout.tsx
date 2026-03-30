@@ -18,16 +18,16 @@ export const metadata: Metadata = {
   description: '레이드 일정 관리 서비스',
 }
 
-export default function RootLayout({
+const RootLayout = ({
   children,
 }: Readonly<{
   children: React.ReactNode
-}>) {
-  return (
-    <html lang="ko" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
-        <Providers>{children}</Providers>
-      </body>
-    </html>
-  )
-}
+}>) => (
+  <html lang="ko" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <body className="min-h-full flex flex-col">
+      <Providers>{children}</Providers>
+    </body>
+  </html>
+)
+
+export default RootLayout

@@ -1,7 +1,9 @@
 import NextAuth from 'next-auth'
 import Kakao from 'next-auth/providers/kakao'
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const {
+ handlers, auth, signIn, signOut
+} = NextAuth({
   providers: [
     Kakao({
       clientId: process.env.AUTH_KAKAO_ID!,
@@ -11,24 +13,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
+        const kakaoProfile = (profile as Record<string, unknown>)
+        const kakaoAccount = kakaoProfile.kakao_account as Record<string, unknown> | undefined
+        const kakaoProfileInfo = kakaoAccount?.profile as Record<string, unknown> | undefined
+
         const res = await fetch(`${process.env.API_URL}/v1/auth/sync`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            kakaoId: String((profile as Record<string, unknown>).id),
-            nickname: ((profile as Record<string, unknown>).kakao_account as Record<string, unknown> | undefined)
-              ?.profile
-              ? (((profile as Record<string, unknown>).kakao_account as Record<string, unknown>).profile as Record<string, unknown>).nickname ?? token.name ?? 'user'
-              : token.name ?? 'user',
-            profileImage: ((profile as Record<string, unknown>).kakao_account as Record<string, unknown> | undefined)
-              ?.profile
-              ? (((profile as Record<string, unknown>).kakao_account as Record<string, unknown>).profile as Record<string, unknown>).thumbnail_image_url ?? null
-              : null,
+            kakaoId: String(kakaoProfile.id),
+            nickname: kakaoProfileInfo?.nickname ?? token.name ?? 'user',
+            profileImage: kakaoProfileInfo?.thumbnail_image_url ?? null,
           }),
         })
         const json = await res.json()
-        token.backendToken = json.data.accessToken
-        token.backendUser = json.data.user
+        return {
+          ...token,
+          backendToken: json.data.accessToken,
+          backendUser: json.data.user,
+        }
       }
       return token
     },

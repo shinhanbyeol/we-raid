@@ -1,17 +1,17 @@
-import { IsString, IsOptional } from 'class-validator'
-import { ApiProperty } from '@nestjs/swagger'
+import { IsString, IsOptional } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class SyncAuthDto {
   @ApiProperty()
   @IsString()
-  kakaoId: string
+  kakaoId: string;
 
   @ApiProperty()
   @IsString()
-  nickname: string
+  nickname: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  profileImage?: string
+  profileImage?: string;
 }
