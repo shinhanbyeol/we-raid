@@ -148,3 +148,8 @@ we-raid/
 - 알림 발송 실패 재시도 (카카오 구현 시 함께)
 - AWS S3 (현재 multer 로컬)
 - Refresh Token (현재 7일 만료 단일 토큰)
+
+
+## 프론트엔드 
+
+middleware.ts 대신 proxy.ts

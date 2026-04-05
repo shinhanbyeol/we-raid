@@ -127,7 +127,7 @@ const HomePage = () => {
     },
   })
 
-  const pendingInvites = notifData?.items.filter(
+  const pendingInvites = notifData?.items?.filter(
     (n) => n.type === 'RAID_INVITE' && !n.isRead,
   ) ?? []
 

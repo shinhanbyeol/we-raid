@@ -1,4 +1,5 @@
-import axios from 'axios'
+/* eslint-disable no-param-reassign */
+import axios, { AxiosHeaders } from 'axios'
 import { getSession } from 'next-auth/react'
 
 export const api = axios.create({
@@ -8,12 +9,10 @@ export const api = axios.create({
 api.interceptors.request.use(async (config) => {
   const session = await getSession()
   if (session?.backendToken) {
+    config.headers = config.headers ?? new AxiosHeaders()
+    config.headers.Authorization = `Bearer ${session.backendToken}`
     return {
       ...config,
-      headers: {
-        ...config.headers,
-        Authorization: `Bearer ${session.backendToken}`,
-      },
     }
   }
   return config

@@ -15,6 +15,13 @@ export class AdminService {
 
   // ── Games ──────────────────────────────────────────────
 
+  getGames() {
+    return this.prisma.game.findMany({
+      include: { servers: true, eventTypes: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async createGame(dto: CreateGameDto) {
     const exists = await this.prisma.game.findUnique({
       where: { slug: dto.slug },
@@ -51,6 +58,14 @@ export class AdminService {
 
   // ── Servers ────────────────────────────────────────────
 
+  async getServers(gameId: string) {
+    await this.assertGame(gameId);
+    return this.prisma.gameServer.findMany({
+      where: { gameId },
+      orderBy: { displayOrder: 'asc' },
+    });
+  }
+
   async createServer(gameId: string, dto: CreateServerDto) {
     await this.assertGame(gameId);
     return this.prisma.gameServer.create({
@@ -70,9 +85,25 @@ export class AdminService {
 
   // ── Event Types ────────────────────────────────────────
 
+  async getEventTypes(gameId: string) {
+    await this.assertGame(gameId);
+    return this.prisma.eventType.findMany({ where: { gameId } });
+  }
+
   async createEventType(gameId: string, dto: CreateEventTypeDto) {
     await this.assertGame(gameId);
     return this.prisma.eventType.create({ data: { gameId, ...dto } });
+  }
+
+  async deleteEventType(gameId: string, id: string) {
+    await this.assertGame(gameId);
+    const et = await this.prisma.eventType.findFirst({ where: { id, gameId } });
+    if (!et)
+      throw new NotFoundException(
+        'WR-GAME-003',
+        '이벤트 유형을 찾을 수 없습니다',
+      );
+    return this.prisma.eventType.delete({ where: { id } });
   }
 
   // ── Users ──────────────────────────────────────────────

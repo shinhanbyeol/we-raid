@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { NotificationsService } from './notifications.service';
 import { SseService } from './sse.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';

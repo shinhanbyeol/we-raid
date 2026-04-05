@@ -2,7 +2,12 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['cdn.we-raid.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.we-raid.com',
+      },
+    ],
   },
 }
 

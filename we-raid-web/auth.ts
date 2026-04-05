@@ -26,7 +26,13 @@ export const {
             profileImage: kakaoProfileInfo?.thumbnail_image_url ?? null,
           }),
         })
+        if (!res.ok) {
+          throw new Error(`Backend sync failed: ${res.status}`)
+        }
         const json = await res.json()
+        if (!json.data?.accessToken) {
+          throw new Error('Backend sync response missing accessToken')
+        }
         return {
           ...token,
           backendToken: json.data.accessToken,

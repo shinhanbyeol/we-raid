@@ -17,6 +17,13 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl)
   }
 
+  if (pathname.startsWith('/admin')) {
+    const user = req.auth?.user as { isAdmin?: boolean } | undefined
+    if (!user?.isAdmin) {
+      return NextResponse.redirect(new URL('/home', req.url))
+    }
+  }
+
   return NextResponse.next()
 })
 

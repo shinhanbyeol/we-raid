@@ -29,6 +29,12 @@ export class AdminController {
 
   // ── Games ──────────────────────────────────────────────
 
+  @Get('games')
+  @ApiOperation({ summary: '게임 목록 조회 (비활성 포함)' })
+  getGames() {
+    return this.adminService.getGames();
+  }
+
   @Post('games')
   @ApiOperation({ summary: '게임 등록' })
   createGame(@Body() dto: CreateGameDto) {
@@ -49,6 +55,12 @@ export class AdminController {
   }
 
   // ── Servers ────────────────────────────────────────────
+
+  @Get('games/:gameId/servers')
+  @ApiOperation({ summary: '서버 목록 조회 (비활성 포함)' })
+  getServers(@Param('gameId') gameId: string) {
+    return this.adminService.getServers(gameId);
+  }
 
   @Post('games/:gameId/servers')
   @ApiOperation({ summary: '서버 등록' })
@@ -75,6 +87,12 @@ export class AdminController {
 
   // ── Event Types ────────────────────────────────────────
 
+  @Get('games/:gameId/event-types')
+  @ApiOperation({ summary: '이벤트 유형 목록 조회' })
+  getEventTypes(@Param('gameId') gameId: string) {
+    return this.adminService.getEventTypes(gameId);
+  }
+
   @Post('games/:gameId/event-types')
   @ApiOperation({ summary: '이벤트 유형 등록' })
   createEventType(
@@ -82,6 +100,13 @@ export class AdminController {
     @Body() dto: CreateEventTypeDto,
   ) {
     return this.adminService.createEventType(gameId, dto);
+  }
+
+  @Delete('games/:gameId/event-types/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: '이벤트 유형 삭제' })
+  deleteEventType(@Param('gameId') gameId: string, @Param('id') id: string) {
+    return this.adminService.deleteEventType(gameId, id);
   }
 
   // ── Users ──────────────────────────────────────────────
