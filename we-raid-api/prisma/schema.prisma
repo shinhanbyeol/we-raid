@@ -78,6 +78,7 @@ model User {
   profileImage String?
   status       UserStatus @default(ACTIVE)
   isAdmin      Boolean    @default(false)
+  boarded      Boolean    @default(false) 
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 

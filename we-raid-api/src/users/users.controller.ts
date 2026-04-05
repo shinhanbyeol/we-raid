@@ -28,6 +28,12 @@ export class UsersController {
     return this.usersService.updateMe(user.id, dto);
   }
 
+  @Patch('me/boarded')
+  @ApiOperation({ summary: '온보딩 완료' })
+  completeOnboarding(@CurrentUser() user: AuthUser) {
+    return this.usersService.completeOnboarding(user.id);
+  }
+
   @Get(':userId/characters')
   @ApiOperation({ summary: '유저 캐릭터 목록 조회 (스펙 공개 설정 적용)' })
   getUserCharacters(

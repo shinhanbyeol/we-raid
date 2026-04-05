@@ -7,6 +7,7 @@ interface BackendUser {
   profileImage: string | null
   status: 'ACTIVE' | 'BANNED' | 'DELETED'
   isAdmin: boolean
+  boarded: boolean
   createdAt: string
 }
 

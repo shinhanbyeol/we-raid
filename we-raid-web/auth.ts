@@ -11,7 +11,17 @@ export const {
     }),
   ],
   callbacks: {
-    async jwt({ token, account, profile }) {
+    async jwt({ token, account, profile, trigger }) {
+      if (trigger === 'update' && token.backendToken) {
+        const res = await fetch(`${process.env.API_URL}/v1/users/me`, {
+          headers: { Authorization: `Bearer ${token.backendToken}` },
+        })
+        if (res.ok) {
+          const json = await res.json()
+          token.backendUser = json.data
+        }
+        return token
+      }
       if (account && profile) {
         const kakaoProfile = (profile as Record<string, unknown>)
         const kakaoAccount = kakaoProfile.kakao_account as Record<string, unknown> | undefined

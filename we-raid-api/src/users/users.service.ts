@@ -30,6 +30,13 @@ export class UsersService {
     return user;
   }
 
+  async completeOnboarding(userId: string) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { boarded: true },
+    });
+  }
+
   async updateMe(userId: string, dto: UpdateUserDto) {
     const exists = await this.prisma.user.findUnique({
       where: { nickname: dto.nickname },

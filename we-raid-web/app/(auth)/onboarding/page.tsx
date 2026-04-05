@@ -25,7 +25,7 @@ const DAYS = ['일', '월', '화', '수', '목', '금', '토']
 
 const OnboardingPage = () => {
   const router = useRouter()
-  const { data: session } = useSession()
+  const { data: session, update } = useSession()
 
   const [step, setStep] = useState<Step>(1)
   const [error, setError] = useState('')
@@ -138,22 +138,28 @@ const OnboardingPage = () => {
   }
 
   const handleFinish = async (skip = false) => {
-    if (!skip && selectedDays.length > 0) {
-      setLoading(true)
-      try {
-        await api.post('/playable-times', {
-          items: selectedDays.map((day) => ({
-            dayOfWeek: day,
-            startTime,
-            endTime,
-            isRecurring: true,
-          })),
-        })
-      } catch {
-        // PT 등록 실패해도 진행
-      } finally {
-        setLoading(false)
+    setLoading(true)
+    try {
+      if (!skip && selectedDays.length > 0) {
+        try {
+          await api.post('/playable-times', {
+            items: selectedDays.map((day) => ({
+              dayOfWeek: day,
+              startTime,
+              endTime,
+              isRecurring: true,
+            })),
+          })
+        } catch {
+          // PT 등록 실패해도 진행
+        }
       }
+      await api.patch('/users/me/boarded', {})
+      await update()
+    } catch {
+      // 온보딩 완료 실패해도 진행
+    } finally {
+      setLoading(false)
     }
     router.push('/home')
   }
