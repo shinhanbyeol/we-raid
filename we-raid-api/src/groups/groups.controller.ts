@@ -13,6 +13,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GroupsService } from './groups.service';
 import { CreateGroupDto } from './dto/create-group.dto';
+import { UpdateGroupDto } from './dto/update-group.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -28,6 +29,12 @@ interface AuthUser {
 @Controller('groups')
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
+
+  @Get()
+  @ApiOperation({ summary: '내가 속한 그룹 목록' })
+  getMyGroups(@CurrentUser() user: AuthUser) {
+    return this.groupsService.getMyGroups(user.id);
+  }
 
   @Post()
   @ApiOperation({ summary: '그룹 생성 (생성자 OWNER 자동 부여)' })
@@ -88,5 +95,22 @@ export class GroupsController {
     @Param('userId') targetUserId: string,
   ) {
     return this.groupsService.removeMember(user.id, groupId, targetUserId);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: '그룹 정보 수정 (OWNER 전용)' })
+  updateGroup(
+    @CurrentUser() user: AuthUser,
+    @Param('id') groupId: string,
+    @Body() dto: UpdateGroupDto,
+  ) {
+    return this.groupsService.updateGroup(user.id, groupId, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: '그룹 삭제 (OWNER 전용)' })
+  deleteGroup(@CurrentUser() user: AuthUser, @Param('id') groupId: string) {
+    return this.groupsService.deleteGroup(user.id, groupId);
   }
 }

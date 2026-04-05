@@ -2,6 +2,7 @@ import { Injectable, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { AppException } from '../common/exceptions/app.exception';
 import { CreateGroupDto } from './dto/create-group.dto';
+import { UpdateGroupDto } from './dto/update-group.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 
@@ -16,6 +17,27 @@ const MEMBER_WITH_USER = {
 @Injectable()
 export class GroupsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async getMyGroups(userId: string) {
+    const memberships = await this.prisma.groupMember.findMany({
+      where: { userId, status: 'ACTIVE' },
+      include: {
+        group: {
+          include: {
+            game: { select: { id: true, name: true, slug: true } },
+            _count: { select: { members: { where: { status: 'ACTIVE' } } } },
+          },
+        },
+      },
+      orderBy: { joinedAt: 'asc' },
+    });
+
+    return memberships.map(({ group, role }) => ({
+      ...group,
+      memberCount: group._count.members,
+      myRole: role,
+    }));
+  }
 
   async createGroup(userId: string, dto: CreateGroupDto) {
     const game = await this.prisma.game.findUnique({
@@ -229,6 +251,40 @@ export class GroupsService {
 
     await this.prisma.groupMember.delete({
       where: { groupId_userId: { groupId, userId: targetUserId } },
+    });
+  }
+
+  async updateGroup(userId: string, groupId: string, dto: UpdateGroupDto) {
+    await this.assertOwner(userId, groupId);
+
+    return this.prisma.group.update({
+      where: { id: groupId },
+      data: {
+        ...(dto.name !== undefined && { name: dto.name }),
+        ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.isPublic !== undefined && { isPublic: dto.isPublic }),
+      },
+      include: {
+        game: { select: { id: true, name: true, slug: true } },
+        owner: { select: { id: true, nickname: true, profileImage: true } },
+        _count: { select: { members: { where: { status: 'ACTIVE' } } } },
+      },
+    });
+  }
+
+  async deleteGroup(userId: string, groupId: string) {
+    await this.assertOwner(userId, groupId);
+
+    await this.prisma.$transaction(async (tx) => {
+      // 스케줄 groupId 해제 (스케줄 데이터는 보존)
+      await tx.schedule.updateMany({
+        where: { groupId },
+        data: { groupId: null },
+      });
+      // 멤버 전체 삭제
+      await tx.groupMember.deleteMany({ where: { groupId } });
+      // 그룹 삭제
+      await tx.group.delete({ where: { id: groupId } });
     });
   }
 

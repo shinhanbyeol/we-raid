@@ -2,6 +2,126 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* ── FullCalendar 스타일 오버라이드 ────────────────────────────────────────── */
+
+/* 폰트·컬러 기반 변수 */
+.fc {
+  font-family: inherit;
+  font-size: 0.8125rem;
+}
+
+/* 헤더 툴바 버튼 */
+.fc .fc-button {
+  background-color: transparent;
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: background-color 0.15s;
+}
+.fc .fc-button:hover {
+  background-color: hsl(var(--muted));
+}
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+.fc .fc-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--ring));
+}
+
+/* 헤더 타이틀 */
+.fc .fc-toolbar-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+/* 그리드 라인 */
+.fc .fc-scrollgrid {
+  border-color: hsl(var(--border));
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+.fc td,
+.fc th {
+  border-color: hsl(var(--border));
+}
+
+/* 오늘 컬럼 하이라이트 */
+.fc .fc-day-today {
+  background-color: hsl(var(--primary) / 0.04) !important;
+}
+.fc .fc-timegrid-col.fc-day-today {
+  background-color: hsl(var(--primary) / 0.04) !important;
+}
+
+/* 현재 시간 인디케이터 */
+.fc .fc-timegrid-now-indicator-line {
+  border-color: hsl(var(--primary));
+}
+.fc .fc-timegrid-now-indicator-arrow {
+  border-top-color: hsl(var(--primary));
+  border-bottom-color: hsl(var(--primary));
+}
+
+/* PT 이벤트 (플레이 가능 시간) */
+.fc-pt-event {
+  font-size: 0.7rem !important;
+  border-radius: 3px !important;
+  opacity: 0.9;
+}
+.fc-pt-event .fc-event-title {
+  font-weight: 500;
+}
+
+/* 레이드 일정 이벤트 */
+.fc-schedule-event {
+  border-radius: 4px !important;
+  font-size: 0.75rem !important;
+}
+.fc-schedule-event .fc-event-title {
+  font-weight: 600;
+}
+
+/* 선택 미러 (드래그 시 표시) */
+.fc .fc-highlight {
+  background-color: hsl(var(--primary) / 0.12);
+}
+
+/* 시간 슬롯 레이블 */
+.fc .fc-timegrid-slot-label {
+  font-size: 0.7rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* 요일 헤더 */
+.fc .fc-col-header-cell {
+  background-color: hsl(var(--muted) / 0.5);
+  padding: 0.375rem 0;
+}
+.fc .fc-col-header-cell-cushion {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+/* 월간 뷰 이벤트 */
+.fc-daygrid-event {
+  border-radius: 3px !important;
+  font-size: 0.7rem !important;
+}
+
+/* 더보기 링크 */
+.fc .fc-daygrid-more-link {
+  font-size: 0.7rem;
+  color: hsl(var(--primary));
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

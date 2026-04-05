@@ -21,10 +21,10 @@ export default auth((req) => {
   }
 
   if (pathname.startsWith('/onboarding')) {
-    if (user?.boarded) {
-      return NextResponse.redirect(new URL('/home', req.url))
-    }
-    return NextResponse.next()
+    // if (user?.boarded) {
+    //   return NextResponse.redirect(new URL('/home', req.url))
+    // }
+    // return NextResponse.next()
   }
 
   if (!user?.boarded) {
